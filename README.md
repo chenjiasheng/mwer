@@ -1,2 +1,2 @@
 # mwer
-mWER loss implementation in tensorflow
+mWER (minimum word error rate) loss implementation in tensorflow
