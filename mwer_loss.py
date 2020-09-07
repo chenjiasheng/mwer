@@ -37,9 +37,9 @@ def mwer_loss(
         `candidate_seq_logprobs[b, n, u, v]` the log prob of being token v for the u-th token
         of n-th candidate sequence (not including SOS) of b-th sample.
       candidate_seq_cnts: An `int32` `Tensor` with shape (B, 1).
-        candidate_seq_cnts[b] <= N for all b in range(B). denotes the real number effective candidate sequences.
-        because sometimes there's not enough N candidates since the acoustic encoder is very sure
-        about its few hypothesis.
+        candidate_seq_cnts[b] <= N - 1 for all b in range(B). denotes the real number of effective candidate sequences.
+        because sometimes there's not enough N - 1 candidates since the prior beam search is too sure
+        about its top few hypotheses.
 
     Returns:
       weighted_relative_edit_errors:
@@ -91,8 +91,8 @@ def mwer_loss(
     masked_edit_errors = seq_mask * candidate_seq_edit_errors  # (B, N)
     avg_edit_errors = tf.reduce_sum(masked_edit_errors, axis=-1, keepdims=True) / tf.cast(candidate_seq_cnts, 'float32')  # (B, 1)
     relative_edit_errors = seq_mask * (masked_edit_errors - tf.tile(avg_edit_errors, (1, N)))
-
     weighted_relative_edit_errors = tf.reduce_sum(renormalized_seq_probs * relative_edit_errors, axis=-1)  # (B,)
+
     # the last seq of each sample is used to calculate CE loss
     ce_loss = -seq_logprobs[:, -1]
 
